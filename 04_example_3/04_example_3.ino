@@ -9,7 +9,6 @@ void setup() {
   Serial.println("Hello World!");
   count = toggle = 0;
   digitalWrite(PIN_LED, toggle);
-
 }
 
 void loop() {
