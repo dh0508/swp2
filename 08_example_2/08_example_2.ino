@@ -10,6 +10,9 @@
 #define _DIST_MIN 100.0   // minimum distance to be measured (unit: mm)
 #define _DIST_MAX 300.0   // maximum distance to be measured (unit: mm)
 
+#define _DIST_AVR 200.0
+int lum;
+
 #define TIMEOUT ((INTERVAL / 2) * 1000.0) // maximum echo waiting time (unit: usec)
 #define SCALE (0.001 * 0.5 * SND_VEL) // coefficent to convert duration to distance
 
@@ -26,10 +29,10 @@ void setup() {
   Serial.begin(57600);
 }
 
-void loop() { 
+void loop() {
   float distance;
 
-  // wait until next sampling time. // polling
+  // wait until next sampling time. 
   // millis() returns the number of milliseconds since the program started.
   //    will overflow after 50 days.
   if (millis() < (last_sampling_time + INTERVAL))
@@ -37,25 +40,39 @@ void loop() {
 
   distance = USS_measure(PIN_TRIG, PIN_ECHO); // read distance
 
-  if ((distance == 0.0) || (distance > _DIST_MAX)) {
-      distance = _DIST_MAX + 10.0;    // Set Higher Value
-      digitalWrite(PIN_LED, 1);       // LED OFF
-  } else if (distance < _DIST_MIN) {
-      distance = _DIST_MIN - 10.0;    // Set Lower Value
-      digitalWrite(PIN_LED, 1);       // LED OFF
-  } else {    // In desired Range
-      digitalWrite(PIN_LED, 0);       // LED ON      
-  }
+  
+  
 
+
+  if ((distance == 0.0) || (distance > _DIST_MAX)) {
+    distance = _DIST_MAX + 10.0;
+     analogWrite(PIN_LED, 255);
+   } else if (distance < _DIST_MIN) { // LED OF
+     distance = _DIST_MIN - 10.0;     // Set Lower Value
+     analogWrite(PIN_LED, 255);       // LED OFF
+   } else {
+      if (distance > _DIST_AVR ) {
+      //lum = map(distance, 200, 300, 0, 255);
+      lum = (2.55*(distance - 200));
+      analogWrite(PIN_LED, lum);
+      } else {
+       //lum = 255 - map(distance, 100, 200, 0, 255);
+       lum = 255.0 - (2.55*(distance - 100));
+       analogWrite(PIN_LED, lum);
+      }
+
+   }
+
+
+  
   // output the distance to the serial port
   Serial.print("Min:");        Serial.print(_DIST_MIN);
   Serial.print(",distance:");  Serial.print(distance);
   Serial.print(",Max:");       Serial.print(_DIST_MAX);
+  Serial.print(",AVR:");       Serial.print(_DIST_AVR);
   Serial.println("");
   
-  // do something here
-  //delay(50); // Assume that it takes 50ms to do something.
-  
+ 
   // update last sampling time
   last_sampling_time += INTERVAL;
 }
